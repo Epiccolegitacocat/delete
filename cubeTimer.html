@@ -1,0 +1,183 @@
+DOCTYPE html>
+<html>
+<head>
+  <title>Speed Cubing Timer</title>
+  <style>
+	.highlight {
+  	color:#22ff00;
+  	font-weight: bold;
+  	font-size: 1.2em;
+	}
+    body {
+      background-color: #000000;
+      color: #fff;
+      font-family: Arial;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+    }
+    
+    h1 {
+      font-size: 36px;
+      margin-bottom: 20px;
+    }
+    
+    #timer {
+      font-size: 72px;
+      margin-bottom: 40px;
+    }
+    
+    #times {
+      font-size: 20px;
+      line-height: 1.5;
+    }
+    
+    #times ul {
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+      text-align: left;
+    }
+    
+    #times li {
+      margin-bottom: 10px;
+    }
+    
+    .red {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+<h1><span class="highlight">Jacob's</span> Speed Cubing Timer</h1>
+  <div id="timer">00:00.00</div>
+  <div id="times">
+    <h2>Recent Times</h2>
+    <ul id="recentTimes">
+      <!-- Recent times will be added dynamically here -->
+    </ul>
+  </div>
+  <button id="scrambleButton">Scramble Cube</button>
+  <div id="scrambledAlgorithm"></div> <!-- Add the element to display the scrambled algorithm -->
+  
+  <script>
+    let startTime;
+    let timerInterval;
+    let timerElement = document.getElementById("timer");
+    let spaceBarPressedTime;
+    let recentTimesElement = document.getElementById("recentTimes");
+    let clearButton = document.getElementById("clearButton");
+    let recentTimes = [];
+    let scrambledAlgorithmElement = document.getElementById("scrambledAlgorithm"); // Get the element to display the scrambled algorithm
+
+    document.addEventListener("keydown", function(event) {
+      if (event.code === "Space") {
+        if (!startTime) {
+          timerElement.classList.add("red");
+          startTime = Date.now();
+        }
+      } else if (event.code === "Backspace") {
+        resetTimer();
+      } else if (event.code === "ShiftLeft" || event.code === "ShiftRight") {
+        clearList();
+      } else if (event.code === "ControlLeft" || event.code === "ControlRight") {
+        spaceBarPressedTime = Date.now();
+      }
+    });
+
+    document.addEventListener("keyup", function(event) {
+      if (event.code === "Space" && startTime) {
+        if (!timerInterval) {
+          timerElement.classList.remove("red");
+          timerInterval = setInterval(updateTimer, 10);
+        } else {
+          clearInterval(timerInterval);
+          timerInterval = null;
+          const elapsedTime = Date.now() - startTime;
+          recentTimes.push(elapsedTime);
+          addRecentTime(elapsedTime);
+        }
+      } else if ((event.code === "ControlLeft" || event.code === "ControlRight") && spaceBarPressedTime) {
+        const holdDuration = Date.now() - spaceBarPressedTime;
+        if (holdDuration >= 1000) {
+          generateScrambledAlgorithm();
+        }
+      }
+    });
+
+    document.getElementById("scrambleButton").addEventListener("click", function() {
+      generateScrambledAlgorithm();
+    });
+
+    function generateScrambledAlgorithm() {
+      // Replace this with your own algorithm generation logic
+      const algorithms = [
+        " U' R2 D' R F2 R B' F' U D R' L U' D2 F' R' U' L R' F2 R2 L' D' U' R",
+        " R' L' D B2 D R2 F' B D U2 F2 R' B L D R2 D2 L B L' B' L' F D F2",
+        " B D L' U D2 L D L B L' B' L F U2 D' F R' D' U2 B U F' D' B2 F",
+        " L' D' F B U' B' L R2 F D2 F2 B2 U F2 L' D' F2 B' L B F L2 B F2 D2",
+        " R L' U2 B' U2 D F' R B' U D2 L2 D2 U2 R F2 U2 L2 U F2 B' R2 D' L' B2",
+        "B F L' R' D' F' D U2 B' F R2 D F2 R2 F' L R B F' D' U R' B' U R B' R' U F' U",
+        " D2 U L' U' B' R' B' F D L2 F L' F U L' R' U R2 D2 L' B' R D2 U F' D B L2 R2 U",
+	    " D' L2 U B D' F2 D' U R' B' R' F' L D2 F D' U' B2 U2 L2 B2 L R' U' B2 U R2 B U' F2",
+		"L2 R2 B D' B L' F D2 F' U' L' R2 U B2 R' F L R D' B2 F' L2 R' D L B D B F' U2",
+		"B L' B2 D U L2 D2 F2 L' R2 B' R2 U B2 L2 D U L2 B2 D B2 R D2 F D2 U2 F2 L R D'",
+
+      ];
+
+      const randomIndex = Math.floor(Math.random() * algorithms.length);
+      const scrambledAlgorithm = algorithms[randomIndex];
+      
+      scrambledAlgorithmElement.textContent = "Scrambled Algorithm: " + scrambledAlgorithm; // Display the scrambled algorithm
+    }
+
+    function clearList() {
+      recentTimes = [];
+      recentTimesElement.innerHTML = "";
+    }
+
+    function updateTimer() {
+      const elapsedTime = Date.now() - startTime;
+      const minutes = Math.floor(elapsedTime / 60000);
+      const seconds = Math.floor((elapsedTime % 60000) / 1000);
+      const milliseconds = Math.floor((elapsedTime % 1000) / 10);
+      timerElement.textContent = `${padZero(minutes)}:${padZero(seconds)}.${padZero(milliseconds)}`;
+    }
+
+    function padZero(value) {
+      return value.toString().padStart(2, "0");
+    }
+
+    function addRecentTime(elapsedTime) {
+      const minutes = Math.floor(elapsedTime / 60000);
+      const seconds = Math.floor((elapsedTime % 60000) / 1000);
+      const milliseconds = Math.floor((elapsedTime % 1000) / 10);
+      const timeString = `${padZero(minutes)}:${padZero(seconds)}.${padZero(milliseconds)}`;
+      const li = document.createElement("li");
+      li.textContent = timeString;
+      recentTimesElement.prepend(li);
+    }
+
+    function resetTimer() {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      startTime = null;
+      timerElement.textContent = "00:00.00";
+      timerElement.classList.remove("red");
+    }
+
+    // Load recent times from localStorage
+    if (localStorage.getItem("recentTimes")) {
+      recentTimes = JSON.parse(localStorage.getItem("recentTimes"));
+      recentTimes.forEach(function(time) {
+        addRecentTime(time);
+      });
+    }
+
+    // Save recent times to localStorage
+    window.addEventListener("beforeunload", function() {
+      localStorage.setItem("recentTimes", JSON.stringify(recentTimes));
+    });
+  </script>
+</body>
+</html>
